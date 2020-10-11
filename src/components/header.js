@@ -1,5 +1,4 @@
 import { Entypo } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View, StyleSheet, Image, TouchableOpacity, Text } from 'react-native';
 import { getStatusBarHeight } from 'react-native-iphone-x-helper';
@@ -8,9 +7,7 @@ import { colors } from '../styles';
 
 const HEADER_HEIGHT = 60;
 
-export default function Header({ showBackButton, renderRight }) {
-   const navigation = useNavigation();
-
+export default function Header({ showBackButton, renderRight, navigation }) {
    return (
       <View style={styles.root}>
          <View style={styles.container}>

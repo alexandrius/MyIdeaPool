@@ -1,12 +1,31 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ScrollView } from 'react-native';
 
 import Header from '../components/header';
+import TextInput from '../components/textInput';
+import useAddIdea from '../hooks/useAddIdea';
 
-export default function AddIdea() {
+export default function AddIdea({ route, navigation }) {
+   const {
+      content,
+      setContent,
+      impact,
+      setImpact,
+      ease,
+      setEase,
+      confidence,
+      setConfidence,
+      avg,
+      loading,
+      createOrUpdateIdea,
+   } = useAddIdea(route?.params?.idea);
+
    return (
       <View style={styles.flex}>
-         <Header showBackButton />
+         <Header showBackButton navigation={navigation} />
+         <ScrollView contentContainerStyle={styles.scrollContent}>
+            <TextInput value={content} onChangeText={setContent} />
+         </ScrollView>
       </View>
    );
 }
@@ -14,5 +33,9 @@ export default function AddIdea() {
 const styles = StyleSheet.create({
    flex: {
       flex: 1,
+   },
+   scrollContent: {
+      paddingTop: 35,
+      paddingHorizontal: 34,
    },
 });

@@ -7,15 +7,22 @@ import TextInput from '../components/textInput';
 import useAuth from '../hooks/useAuth';
 import { colors } from '../styles';
 
-export default function Authorization({ signUp = true, setLoggedIn, onMethodPress }) {
-   const { name, setName, email, setEmail, password, setPassword, authorize, loading } = useAuth(
-      signUp,
-      setLoggedIn
-   );
+export default function Authorization({ onMethodPress }) {
+   const {
+      name,
+      setName,
+      email,
+      setEmail,
+      password,
+      setPassword,
+      authorize,
+      loading,
+      showSignUp,
+   } = useAuth();
 
-   const title = signUp ? 'Sign Up' : 'Log in';
-   const bottomText = signUp ? 'Already have an account?' : 'Don’t have an account?';
-   const bottomTextPressable = signUp ? ' Log in' : ' Create an account';
+   const title = showSignUp ? 'Sign Up' : 'Log in';
+   const bottomText = showSignUp ? 'Already have an account?' : 'Don’t have an account?';
+   const bottomTextPressable = showSignUp ? ' Log in' : ' Create an account';
 
    return (
       <View style={styles.flex}>
@@ -23,7 +30,7 @@ export default function Authorization({ signUp = true, setLoggedIn, onMethodPres
          <KeyboardAvoidingView behavior='padding' style={styles.container}>
             <Text style={styles.title}>{title}</Text>
 
-            {signUp && (
+            {showSignUp && (
                <TextInput
                   value={name}
                   onChangeText={setName}
