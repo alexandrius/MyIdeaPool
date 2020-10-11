@@ -14,6 +14,7 @@ const useIdeas = createStore({
 
       function fetchIdeas(index = 1) {
          if (index === 1) {
+            indexRef.current = 1;
             setLoading(true);
          } else {
             setLoadingMore(true);
@@ -24,8 +25,10 @@ const useIdeas = createStore({
 
             if (index === 1) {
                setIdeas(data);
+               setLoading(false);
             } else {
                setIdeas([...ideas, data]);
+               setLoadingMore(false);
             }
          });
       }
@@ -41,7 +44,7 @@ const useIdeas = createStore({
          ideas,
          loadMoreIdeas,
          fetchIdeas,
-         setIdeas
+         setIdeas,
       };
    },
 });

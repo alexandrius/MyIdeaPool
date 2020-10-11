@@ -29,11 +29,11 @@ export default function useAddIdea(idea) {
       };
 
       const request = idea?.id ? Ajax.put(`ideas/${idea.id}`, body) : Ajax.post(`ideas`, body);
-      request.then((idea) => {
+      request.then((data) => {
          if (idea?.id) {
-            for (let i = 0; i < ideas.length; i++) {
-               if (ideas[i].id === idea?.id) {
-                  const _ideas = [...ideas];
+            for (let i = 0; i < data.length; i++) {
+               if (ideas[i].id === data.id) {
+                  const _ideas = [...data];
                   _ideas[i] = idea;
 
                   setIdeas(_ideas);
@@ -41,7 +41,7 @@ export default function useAddIdea(idea) {
                }
             }
          } else {
-            setIdeas([idea, ...ideas]);
+            setIdeas([data, ...ideas]);
          }
          navigation.goBack();
       });
