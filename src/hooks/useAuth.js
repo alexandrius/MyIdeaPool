@@ -8,8 +8,8 @@ const useAuth = createStore({
    name: 'AuthStore',
    Store: () => {
       const [name, setName] = useState('');
-      const [email, setEmail] = useState('');
-      const [password, setPassword] = useState('');
+      const [email, setEmail] = useState(__DEV__ ? 'epic@yopmail.com' : '');
+      const [password, setPassword] = useState(__DEV__ ? 'Password1#' : '');
       const [loading, setLoading] = useState(false);
       const [isLoggedIn, setLoggedIn] = useState(false);
       const [showSignUp, setShowSignUp] = useState(true);

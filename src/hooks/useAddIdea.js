@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import Ajax from '../services/ajax';
 import useIdeas from './useIdeas';
@@ -9,15 +9,26 @@ export default function useAddIdea(idea) {
    const [impact, setImpact] = useState(idea?.impact || '10');
    const [ease, setEase] = useState(idea?.ease || '10');
    const [confidence, setConfidence] = useState(idea?.confidence || '10');
-   const [avg, setAvg] = useState(idea?.average_score || '10');
+   const [avg, setAvg] = useState(idea?.average_score || '10.00');
    const [loading, setLoading] = useState(false);
    const { ideas, setIdeas } = useIdeas();
 
    const navigation = useNavigation();
 
+   useEffect(() => {
+      setAvg(Number((Number(impact) + Number(ease) + Number(confidence)) / 3).toFixed(2));
+   }, [impact, ease, confidence]);
+
    function createOrUpdateIdea() {
       setLoading(true);
-      const request = idea?.id ? Ajax.put(`ideas/${idea.id}`) : Ajax.post(`ideas`);
+      const body = {
+         content,
+         impact: Number(impact),
+         ease: Number(ease),
+         confidence: Number(confidence),
+      };
+
+      const request = idea?.id ? Ajax.put(`ideas/${idea.id}`, body) : Ajax.post(`ideas`, body);
       request.then((idea) => {
          if (idea?.id) {
             for (let i = 0; i < ideas.length; i++) {
@@ -32,7 +43,7 @@ export default function useAddIdea(idea) {
          } else {
             setIdeas([idea, ...ideas]);
          }
-         navigation.goBackc();
+         navigation.goBack();
       });
    }
 
