@@ -21,7 +21,7 @@ function ScoreKeyValue({ left, value, onPress }) {
    );
 }
 
-const options = ['Cancel', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+const options = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Cancel'];
 
 export default function AddIdea({ route, navigation }) {
    const {
@@ -39,6 +39,12 @@ export default function AddIdea({ route, navigation }) {
    } = useAddIdea(route?.params?.idea);
 
    const { showActionSheetWithOptions } = useActionSheet();
+
+   function showActionSheet(title, set) {
+      showActionSheetWithOptions({ options, cancelButtonIndex: 10, title }, (i) => {
+         if (i !== 10) set(i + 1);
+      });
+   }
 
    return (
       <View style={styles.flex}>
@@ -58,36 +64,21 @@ export default function AddIdea({ route, navigation }) {
                left='Impact'
                value={impact}
                onPress={() => {
-                  showActionSheetWithOptions(
-                     { options, cancelButtonIndex: 0, title: 'Impact' },
-                     (i) => {
-                        setImpact(i);
-                     }
-                  );
+                  showActionSheet('Impact', setImpact);
                }}
             />
             <ScoreKeyValue
                left='Ease'
                value={ease}
                onPress={() => {
-                  showActionSheetWithOptions(
-                     { options, cancelButtonIndex: 0, title: 'Impact' },
-                     (i) => {
-                        setEase(i);
-                     }
-                  );
+                  showActionSheet('Ease', setEase);
                }}
             />
             <ScoreKeyValue
                left='Confidence'
                value={confidence}
                onPress={() => {
-                  showActionSheetWithOptions(
-                     { options, cancelButtonIndex: 0, title: 'Impact' },
-                     (i) => {
-                        setConfidence(i);
-                     }
-                  );
+                  showActionSheet('Confidence', setConfidence);
                }}
             />
             <ScoreKeyValue left='Avg.' value={avg} />

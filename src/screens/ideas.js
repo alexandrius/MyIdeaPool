@@ -1,6 +1,6 @@
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Entypo } from '@expo/vector-icons';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
    View,
    Text,
@@ -10,6 +10,7 @@ import {
    Image,
    Alert,
    ActivityIndicator,
+   Animated,
 } from 'react-native';
 import { getBottomSpace } from 'react-native-iphone-x-helper';
 
@@ -28,8 +29,18 @@ function ScoreKeyValue({ top, bottom }) {
 }
 
 function Idea({ content, impact, ease, confidence, average_score, onOptionsPress }) {
+   const [scale] = useState(new Animated.Value(0.8));
+
+   useEffect(() => {
+      Animated.spring(scale, {
+         toValue: 1,
+         duration: 300,
+         useNativeDriver: true,
+      }).start();
+   }, []);
+
    return (
-      <View style={styles.idea}>
+      <Animated.View style={[styles.idea, { transform: [{ scale }] }]}>
          <Text style={styles.ideaContent}>{content}</Text>
          <View style={styles.divider} />
          <View style={styles.rowJustify}>
@@ -43,7 +54,7 @@ function Idea({ content, impact, ease, confidence, average_score, onOptionsPress
          <TouchableOpacity onPress={onOptionsPress} style={styles.scoreOptions}>
             <Entypo color='rgba(42,56,66,0.23)' size={20} name='dots-three-vertical' />
          </TouchableOpacity>
-      </View>
+      </Animated.View>
    );
 }
 

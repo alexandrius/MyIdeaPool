@@ -1,12 +1,11 @@
 import AsyncStorage from '@react-native-community/async-storage';
-import axios from 'axios';
 
 import MemCache from '../utils/memCache';
 
 const API_URL = 'https://small-project-api.herokuapp.com/';
 
 //max, min or none
-const LOG_LEVEL = 'min';
+const LOG_LEVEL = 'max';
 
 const TEN_MINUTES = 1000 * 60 * 10;
 
@@ -40,11 +39,11 @@ class Ajax {
 
    _fetch(uri, payload, method) {
       const promise = new Promise((resolve, reject) => {
-         const data = new FormData();
-         if (payload)
-            Object.keys(payload).forEach((key) => {
-               data.append(key, payload[key]);
-            });
+         // const data = new FormData();
+         // if (payload)
+         //    Object.keys(payload).forEach((key) => {
+         //       data.append(key, payload[key]);
+         //    });
 
          const headers = this.headers();
 
@@ -61,33 +60,49 @@ class Ajax {
                   AsyncStorage.setItem('jwt', jwtData.jwt);
                   MemCache.jwt = jwtData.jwt;
                   headers['x-access-token'] = jwtData.jwt;
-                  this.executeRequest(method, url, headers, data, payload, resolve, reject);
+                  this.executeRequest(method, url, headers, payload, resolve, reject);
                })
                .catch(() => {});
          } else {
-            this.executeRequest(method, url, headers, data, payload, resolve, reject);
+            this.executeRequest(method, url, headers, payload, resolve, reject);
          }
       });
       return promise;
    }
 
-   executeRequest(method, url, headers, data, payload, resolve, reject) {
-      axios({ method, url, headers, data })
-         .then((response) => {
-            this.logResponse(
-               method,
-               url,
-               headers,
-               payload,
-               JSON.stringify(response.data),
-               response.status
-            );
-            resolve(response.data);
-         })
-         .catch((error) => {
-            this.logResponse(method, url, headers, payload, error);
-            reject(error);
-         });
+   executeRequest(method, url, headers, payload, resolve, reject) {
+      let options = {
+         method,
+         headers,
+      };
+
+      if (method !== 'get') {
+         options = { ...options, body: JSON.stringify(payload) };
+      }
+
+      fetch(url, options).then((resp) => {
+         resp
+            .text()
+            .then((res) => {
+               this.logResponse(method, url, headers, payload, res, '');
+               try {
+                  const response = JSON.parse(res);
+                  if (response?.reason) {
+                     reject(response.reason);
+                     MemCache.alert.alertWithType('error', 'Authorization Error', response.reason);
+                  } else {
+                     resolve(response);
+                  }
+               } catch (_) {
+                  resolve(res);
+               }
+            })
+            .catch((error) => {
+               MemCache.alert.alertWithType('error', 'Error', error);
+               this.logResponse(method, url, headers, payload, error);
+               reject(error);
+            });
+      });
    }
 
    static getParams(payload, request) {

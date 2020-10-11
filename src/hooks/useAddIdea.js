@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useState, useEffect } from 'react';
 
 import Ajax from '../services/ajax';
+import MemCache from '../utils/memCache';
 import useIdeas from './useIdeas';
 
 export default function useAddIdea(idea) {
@@ -20,31 +21,35 @@ export default function useAddIdea(idea) {
    }, [impact, ease, confidence]);
 
    function createOrUpdateIdea() {
-      setLoading(true);
-      const body = {
-         content,
-         impact: Number(impact),
-         ease: Number(ease),
-         confidence: Number(confidence),
-      };
+      if (content) {
+         setLoading(true);
+         const body = {
+            content,
+            impact: Number(impact),
+            ease: Number(ease),
+            confidence: Number(confidence),
+         };
 
-      const request = idea?.id ? Ajax.put(`ideas/${idea.id}`, body) : Ajax.post(`ideas`, body);
-      request.then((data) => {
-         if (idea?.id) {
-            for (let i = 0; i < data.length; i++) {
-               if (ideas[i].id === data.id) {
-                  const _ideas = [...data];
-                  _ideas[i] = idea;
-
-                  setIdeas(_ideas);
-                  break;
+         const request = idea?.id ? Ajax.put(`ideas/${idea.id}`, body) : Ajax.post(`ideas`, body);
+         request.then((data) => {
+            if (idea?.id) {
+               for (let i = 0; i < ideas.length; i++) {
+                  if (ideas[i].id === idea.id) {
+                     const _ideas = [...ideas];
+                     _ideas[i] = data;
+                     console.log('update');
+                     setIdeas(_ideas);
+                     break;
+                  }
                }
+            } else {
+               setIdeas([data, ...ideas]);
             }
-         } else {
-            setIdeas([data, ...ideas]);
-         }
-         navigation.goBack();
-      });
+            navigation.goBack();
+         });
+      } else {
+         MemCache.alert.alertWithType('warn', 'Content Empty', 'Please fill content');
+      }
    }
 
    return {

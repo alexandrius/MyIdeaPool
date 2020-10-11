@@ -48,13 +48,12 @@ const useAuth = createStore({
                setLoggedIn(true);
             })
             .catch(() => {
-               //TODO: show error
                setLoading(false);
             });
       }
 
       function logout() {
-         Ajax.delete('access-tokens');
+         Ajax.delete('access-tokens', { refresh_token: MemCache.refresh_token });
          setLoggedIn(false);
          setLoading(false);
          AsyncStorage.clear();
