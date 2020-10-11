@@ -4,9 +4,15 @@ import { View, StyleSheet, Text, KeyboardAvoidingView, TouchableOpacity } from '
 import Button from '../components/button';
 import Header from '../components/header';
 import TextInput from '../components/textInput';
+import useAuth from '../hooks/useAuth';
 import { colors } from '../styles';
 
-export default function Authorization({ signUp = true, onMethodPress }) {
+export default function Authorization({ signUp = true, setLoggedIn, onMethodPress }) {
+   const { name, setName, email, setEmail, password, setPassword, authorize, loading } = useAuth(
+      signUp,
+      setLoggedIn
+   );
+
    const title = signUp ? 'Sign Up' : 'Log in';
    const bottomText = signUp ? 'Already have an account?' : 'Don’t have an account?';
    const bottomTextPressable = signUp ? ' Log in' : ' Create an account';
@@ -17,15 +23,39 @@ export default function Authorization({ signUp = true, onMethodPress }) {
          <KeyboardAvoidingView behavior='padding' style={styles.container}>
             <Text style={styles.title}>{title}</Text>
 
-            {signUp && <TextInput style={styles.input} placeholder='Name' />}
-            <TextInput style={styles.input} placeholder='Email' />
-            <TextInput style={styles.input} placeholder='Password' />
+            {signUp && (
+               <TextInput
+                  value={name}
+                  onChangeText={setName}
+                  style={styles.input}
+                  placeholder='Name'
+                  autoCapitalize='words'
+                  editable={!loading}
+               />
+            )}
+            <TextInput
+               value={email}
+               onChangeText={setEmail}
+               style={styles.input}
+               placeholder='Email'
+               autoCapitalize='none'
+               editable={!loading}
+            />
+            <TextInput
+               value={password}
+               onChangeText={setPassword}
+               style={styles.input}
+               placeholder='Password'
+               autoCapitalize='none'
+               secureTextEntry
+               editable={!loading}
+            />
 
-            <Button title={title} style={styles.button} />
+            <Button loading={loading} title={title} style={styles.button} onPress={authorize} />
          </KeyboardAvoidingView>
          <View style={styles.bottomTextContainer}>
             <Text style={styles.bottomText}>{bottomText}</Text>
-            <TouchableOpacity onPress={onMethodPress}>
+            <TouchableOpacity disabled={loading} onPress={onMethodPress}>
                <Text style={styles.bottomTextPressable}>{bottomTextPressable}</Text>
             </TouchableOpacity>
          </View>

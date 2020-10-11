@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { BASE_URL } from 'env';
 
-const API_URL = BASE_URL + 'api/';
+import MemCache from '../utils/memCache';
+
+const API_URL = 'https://small-project-api.herokuapp.com/';
 
 //max, min or none
 const LOG_LEVEL = 'max';
@@ -10,6 +11,8 @@ class Ajax {
    headers() {
       return {
          'Content-Type': 'application/json',
+         'x-access-token': MemCache.jwt,
+         refresh_token: MemCache.refresh_token,
       };
    }
 
