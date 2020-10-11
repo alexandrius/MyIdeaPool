@@ -2,6 +2,7 @@ import { createStore } from 'aniuta';
 import { useState, useRef } from 'react';
 
 import Ajax from '../services/ajax';
+import { animateLayoutChanges } from '../utils/utils';
 
 const useIdeas = createStore({
    name: 'IdeasStore',
@@ -33,8 +34,30 @@ const useIdeas = createStore({
          });
       }
 
+      function deleteIdea(id) {
+         Ajax.delete(`ideas/${id}`).then(() => {
+            const _ideas = [...ideas];
+            for (let i = 0; i < _ideas.length; i++) {
+               if (_ideas[i].id === id) {
+                  _ideas.splice(i, 1);
+                  break;
+               }
+            }
+            setIdeas(_ideas);
+            animateLayoutChanges();
+         });
+      }
+
       function loadMoreIdeas() {
          fetchIdeas(indexRef.current);
+      }
+
+      function clearIdeas() {
+         indexRef.current = 1;
+         setLoadingMore(false);
+         setReachedEnd(false);
+         setLoading(false);
+         setIdeas([]);
       }
 
       return {
@@ -45,6 +68,8 @@ const useIdeas = createStore({
          loadMoreIdeas,
          fetchIdeas,
          setIdeas,
+         deleteIdea,
+         clearIdeas,
       };
    },
 });

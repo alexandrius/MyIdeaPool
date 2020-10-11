@@ -1,9 +1,11 @@
+import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Entypo } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, Alert } from 'react-native';
 import { getBottomSpace } from 'react-native-iphone-x-helper';
 
 import Header from '../components/header';
+import useAuth from '../hooks/useAuth';
 import useIdeas from '../hooks/useIdeas';
 import { colors } from '../styles';
 
@@ -16,7 +18,7 @@ function ScoreKeyValue({ top, bottom }) {
    );
 }
 
-function Idea({ content, impact, ease, confidence, average_score }) {
+function Idea({ content, impact, ease, confidence, average_score, onOptionsPress }) {
    return (
       <View style={styles.idea}>
          <Text style={styles.ideaContent}>{content}</Text>
@@ -29,22 +31,65 @@ function Idea({ content, impact, ease, confidence, average_score }) {
             </View>
             <ScoreKeyValue bottom='Avg.' top={average_score} />
          </View>
+         <TouchableOpacity onPress={onOptionsPress} style={styles.scoreOptions}>
+            <Entypo color='rgba(42,56,66,0.23)' size={20} name='dots-three-vertical' />
+         </TouchableOpacity>
       </View>
    );
 }
 
+const options = ['Cancel', 'Edit', 'Delete'];
+
 export default function Ideas({ navigation }) {
-   const { ideas, fetchIdeas, loading } = useIdeas();
+   const { ideas, fetchIdeas, loading, deleteIdea, clearIdeas } = useIdeas();
+   const { logout } = useAuth();
+
+   const { showActionSheetWithOptions } = useActionSheet();
 
    useEffect(() => {
       fetchIdeas();
    }, []);
 
+   function onOptionsPress(item) {
+      showActionSheetWithOptions(
+         {
+            options,
+            destructiveButtonIndex: 2,
+            cancelButtonIndex: 0,
+         },
+         (i) => {
+            switch (i) {
+               case 1:
+                  navigation.navigate('AddIdea', { idea: item });
+                  break;
+               case 2:
+                  Alert.alert(
+                     'Are you sure?',
+                     'This idea will be permanently deleted.',
+                     [
+                        {
+                           text: 'Cancel',
+                           style: 'cancel',
+                        },
+                        { text: 'OK', onPress: () => deleteIdea(item.id) },
+                     ],
+                     { cancelable: false }
+                  );
+                  break;
+            }
+         }
+      );
+   }
+
    return (
       <View style={styles.flex}>
          <Header
             renderRight={() => (
-               <TouchableOpacity>
+               <TouchableOpacity
+                  onPress={() => {
+                     clearIdeas();
+                     logout();
+                  }}>
                   <Text style={styles.logout}>Log out</Text>
                </TouchableOpacity>
             )}
@@ -67,7 +112,9 @@ export default function Ideas({ navigation }) {
                </View>
             }
             keyExtractor={({ id }) => id}
-            renderItem={({ item }) => <Idea {...item} />}
+            renderItem={({ item }) => (
+               <Idea {...item} onOptionsPress={() => onOptionsPress(item)} />
+            )}
          />
 
          <TouchableOpacity
@@ -151,7 +198,7 @@ const styles = StyleSheet.create({
       marginTop: 13,
       marginBottom: 9,
       height: 1,
-      backgroundColor: 'border: 1px solid rgba(151,151,151,0.17);',
+      backgroundColor: 'rgba(151,151,151,0.17);',
    },
    score: {
       alignItems: 'center',
@@ -165,5 +212,13 @@ const styles = StyleSheet.create({
    scoreValue: {
       lineHeight: 18,
       fontSize: 16,
+   },
+   scoreOptions: {
+      position: 'absolute',
+      right: 11,
+      top: 11,
+   },
+   optionsIcon: {
+      marginHorizontal: 11,
    },
 });

@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-community/async-storage';
 import axios from 'axios';
 
 import MemCache from '../utils/memCache';
@@ -7,22 +8,22 @@ const API_URL = 'https://small-project-api.herokuapp.com/';
 //max, min or none
 const LOG_LEVEL = 'max';
 
+const TEN_MINUTES = 1000 * 60 * 10;
+
 class Ajax {
    headers() {
       return {
          'Content-Type': 'application/json',
          'x-access-token': MemCache.jwt,
-         refresh_token: MemCache.refresh_token,
       };
    }
 
    get(uri) {
-      //TODO: Improve with automatic query payload
       return this._fetch(uri, null, 'get');
    }
 
-   post(uri, payload, files, onUploadProgress, formData) {
-      return this._fetch(uri, payload, 'post', files, onUploadProgress, formData);
+   post(uri, payload) {
+      return this._fetch(uri, payload, 'post');
    }
 
    delete(uri, payload) {
@@ -37,48 +38,57 @@ class Ajax {
       return this._fetch(uri, payload, 'put');
    }
 
-   _fetch(uri, payload, method, files, onUploadProgress, formData) {
+   _fetch(uri, payload, method) {
       const promise = new Promise((resolve, reject) => {
-         let data = new FormData();
+         const data = new FormData();
          if (payload)
             Object.keys(payload).forEach((key) => {
                data.append(key, payload[key]);
             });
 
-         if (files)
-            Object.keys(files).forEach((key) => {
-               data.append(key, files[key]);
-            });
-
-         if (formData) data = formData;
          const headers = this.headers();
 
          const url = API_URL + uri;
          this.logRequest(method, url, headers, payload);
-         axios({ method, url, headers, data, onUploadProgress })
-            .then((response) => {
-               if (response?.data?.error) {
-                  //TODO show error
-               }
-               this.logResponse(
-                  method,
-                  url,
-                  headers,
-                  payload,
-                  JSON.stringify(response.data),
-                  response.status
-               );
-               resolve(response.data);
+
+         const requestTime = new Date().getTime();
+         console.log('requestTime', requestTime);
+         if (!MemCache.token_timestamp || requestTime - MemCache.token_timestamp >= TEN_MINUTES) {
+            MemCache.token_timestamp = requestTime;
+            this.post('access-tokens/refresh', {
+               refresh_token: MemCache.refresh_token,
             })
-            .catch((error) => {
-               try {
-                  //TODO: show error
-               } catch {}
-               this.logResponse(method, url, headers, payload, error);
-               reject(error);
-            });
+               .then((jwtData) => {
+                  AsyncStorage.setItem('jwt', jwtData.jwt);
+                  MemCache.jwt = jwtData.jwt;
+                  headers['x-access-token'] = jwtData.jwt;
+                  this.executeRequest(method, url, headers, data, payload, resolve, reject);
+               })
+               .catch(() => {});
+         } else {
+            this.executeRequest(method, url, headers, data, payload, resolve, reject);
+         }
       });
       return promise;
+   }
+
+   executeRequest(method, url, headers, data, payload, resolve, reject) {
+      axios({ method, url, headers, data })
+         .then((response) => {
+            this.logResponse(
+               method,
+               url,
+               headers,
+               payload,
+               JSON.stringify(response.data),
+               response.status
+            );
+            resolve(response.data);
+         })
+         .catch((error) => {
+            this.logResponse(method, url, headers, payload, error);
+            reject(error);
+         });
    }
 
    static getParams(payload, request) {

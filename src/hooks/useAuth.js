@@ -1,5 +1,7 @@
+import AsyncStorage from '@react-native-community/async-storage';
 import { createStore } from 'aniuta';
-import { useState } from 'react';
+import * as SplashScreen from 'expo-splash-screen';
+import { useState, useEffect } from 'react';
 
 import Ajax from '../services/ajax';
 import MemCache from '../utils/memCache';
@@ -14,6 +16,17 @@ const useAuth = createStore({
       const [isLoggedIn, setLoggedIn] = useState(false);
       const [showSignUp, setShowSignUp] = useState(true);
 
+      async function checkAuthorization() {
+         const refresh_token = await AsyncStorage.getItem('refresh_token');
+         MemCache.refresh_token = refresh_token;
+         setLoggedIn(!!refresh_token);
+         await SplashScreen.hideAsync();
+      }
+
+      useEffect(() => {
+         checkAuthorization();
+      }, []);
+
       function signUp() {
          return Ajax.post('users', { name, email, password });
       }
@@ -23,18 +36,31 @@ const useAuth = createStore({
       }
 
       function authorize() {
+         MemCache.token_timestamp = new Date().getTime();
          const request = showSignUp ? signUp() : login();
          setLoading(true);
          request
             .then(({ jwt, refresh_token }) => {
                MemCache.jwt = jwt;
                MemCache.refresh_token = refresh_token;
+               AsyncStorage.setItem('jwt', jwt);
+               AsyncStorage.setItem('refresh_token', refresh_token);
                setLoggedIn(true);
             })
             .catch(() => {
                //TODO: show error
                setLoading(false);
             });
+      }
+
+      function logout() {
+         Ajax.delete('access-tokens');
+         setLoggedIn(false);
+         setLoading(false);
+         AsyncStorage.clear();
+         MemCache.jwt = '';
+         MemCache.refresh_token = '';
+         MemCache.token_timestamp = 1;
       }
 
       return {
@@ -49,6 +75,7 @@ const useAuth = createStore({
          isLoggedIn,
          showSignUp,
          setShowSignUp,
+         logout,
       };
    },
 });
