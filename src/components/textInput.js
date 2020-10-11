@@ -1,11 +1,12 @@
-import React from "react";
-import { View, TextInput as RNTextInput, StyleSheet } from "react-native";
-import { colors } from "../styles";
+import React from 'react';
+import { View, TextInput as RNTextInput, StyleSheet } from 'react-native';
+
+import { colors } from '../styles';
 
 export default function TextInput({ style, ...rest }) {
    return (
       <View style={[styles.input, style]}>
-         <RNTextInput underlineColorAndroid="transparent" {...rest} />
+         <RNTextInput underlineColorAndroid='transparent' {...rest} />
       </View>
    );
 }
