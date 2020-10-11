@@ -8,30 +8,52 @@ const useIdeas = createStore({
    name: 'IdeasStore',
    Store: () => {
       const indexRef = useRef(1);
-      const [loadingMore, setLoadingMore] = useState(false);
-      const [loading, setLoading] = useState(false);
-      const [reachedEnd, setReachedEnd] = useState(false);
+      const [loadingMore, setLoadingMoreRaw] = useState(false);
+      const loadingMoreRef = useRef(false);
+      const [loading, setLoadingRaw] = useState(false);
+      const loadingRef = useRef(false);
+      const [reachedEnd, setReachedEndRaw] = useState(false);
+      const reachedEndRef = useRef(false);
+
       const [ideas, setIdeas] = useState([]);
 
-      function fetchIdeas(index = 1) {
-         if (index === 1) {
-            indexRef.current = 1;
-            setLoading(true);
-         } else {
-            setLoadingMore(true);
-         }
-         indexRef.current = indexRef.current + 1;
-         Ajax.get(`ideas?page=${index}`).then((data) => {
-            if (data.length < 10) setReachedEnd(true);
+      function setLoading(loading) {
+         loadingRef.current = loading;
+         setLoadingRaw(loading);
+      }
 
+      function setLoadingMore(loading) {
+         loadingMoreRef.current = loading;
+         setLoadingMoreRaw(loading);
+      }
+
+      function setReachedEnd(reachedEnd) {
+         reachedEndRef.current = reachedEnd;
+         setReachedEndRaw(reachedEnd);
+      }
+
+      function fetchIdeas(index = 1) {
+         if (!loadingMoreRef.current && !loadingRef.current) {
             if (index === 1) {
-               setIdeas(data);
-               setLoading(false);
+               indexRef.current = 1;
+               setLoading(true);
+               setReachedEnd(false);
             } else {
-               setIdeas([...ideas, data]);
-               setLoadingMore(false);
+               setLoadingMore(true);
             }
-         });
+            indexRef.current = indexRef.current + 1;
+            Ajax.get(`ideas?page=${index}`).then((data) => {
+               if (data.length < 10) setReachedEnd(true);
+
+               if (index === 1) {
+                  setIdeas(data);
+                  setLoading(false);
+               } else {
+                  setIdeas([...ideas, ...data]);
+                  setLoadingMore(false);
+               }
+            });
+         }
       }
 
       function deleteIdea(id) {
@@ -49,7 +71,7 @@ const useIdeas = createStore({
       }
 
       function loadMoreIdeas() {
-         fetchIdeas(indexRef.current);
+         if (!reachedEndRef.current && ideas.length >= 10) fetchIdeas(indexRef.current);
       }
 
       function clearIdeas() {

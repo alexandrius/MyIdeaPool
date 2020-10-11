@@ -6,7 +6,7 @@ import MemCache from '../utils/memCache';
 const API_URL = 'https://small-project-api.herokuapp.com/';
 
 //max, min or none
-const LOG_LEVEL = 'max';
+const LOG_LEVEL = 'min';
 
 const TEN_MINUTES = 1000 * 60 * 10;
 
@@ -52,7 +52,6 @@ class Ajax {
          this.logRequest(method, url, headers, payload);
 
          const requestTime = new Date().getTime();
-         console.log('requestTime', requestTime);
          if (!MemCache.token_timestamp || requestTime - MemCache.token_timestamp >= TEN_MINUTES) {
             MemCache.token_timestamp = requestTime;
             this.post('access-tokens/refresh', {

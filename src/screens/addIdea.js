@@ -43,7 +43,9 @@ export default function AddIdea({ route, navigation }) {
    return (
       <View style={styles.flex}>
          <Header showBackButton navigation={navigation} />
-         <ScrollView contentContainerStyle={styles.scrollContent}>
+         <ScrollView
+            keyboardShouldPersistTaps='handled'
+            contentContainerStyle={styles.scrollContent}>
             <TextInput
                value={content}
                onChangeText={setContent}

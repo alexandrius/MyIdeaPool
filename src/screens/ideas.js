@@ -1,7 +1,16 @@
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Entypo } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, Alert } from 'react-native';
+import {
+   View,
+   Text,
+   StyleSheet,
+   TouchableOpacity,
+   FlatList,
+   Image,
+   Alert,
+   ActivityIndicator,
+} from 'react-native';
 import { getBottomSpace } from 'react-native-iphone-x-helper';
 
 import Header from '../components/header';
@@ -41,7 +50,15 @@ function Idea({ content, impact, ease, confidence, average_score, onOptionsPress
 const options = ['Cancel', 'Edit', 'Delete'];
 
 export default function Ideas({ navigation }) {
-   const { ideas, fetchIdeas, loading, deleteIdea, clearIdeas } = useIdeas();
+   const {
+      ideas,
+      fetchIdeas,
+      loading,
+      deleteIdea,
+      clearIdeas,
+      reachedEnd,
+      loadMoreIdeas,
+   } = useIdeas();
    const { logout } = useAuth();
 
    const { showActionSheetWithOptions } = useActionSheet();
@@ -115,6 +132,16 @@ export default function Ideas({ navigation }) {
             renderItem={({ item }) => (
                <Idea {...item} onOptionsPress={() => onOptionsPress(item)} />
             )}
+            onEndReached={() => loadMoreIdeas()}
+            ListFooterComponent={
+               <View>
+                  {!reachedEnd && (
+                     <View style={styles.footer}>
+                        <ActivityIndicator />
+                     </View>
+                  )}
+               </View>
+            }
          />
 
          <TouchableOpacity
@@ -143,6 +170,7 @@ const styles = StyleSheet.create({
    listContent: {
       flexGrow: 1,
       paddingHorizontal: 12,
+      paddingBottom: getBottomSpace(),
    },
    emptyContainer: {
       alignItems: 'center',
@@ -220,5 +248,9 @@ const styles = StyleSheet.create({
    },
    optionsIcon: {
       marginHorizontal: 11,
+   },
+   footer: {
+      marginTop: getBottomSpace() || 10,
+      alignItems: 'center',
    },
 });
